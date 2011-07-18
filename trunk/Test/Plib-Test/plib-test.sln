@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plib-test", "plib-test\plib-test.vcxproj", "{05842546-7977-4163-A4EC-8DA443D0201E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plibClient", "plibClient\plibClient.vcxproj", "{D78871F8-3206-4E86-AA4B-D240683835C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{05842546-7977-4163-A4EC-8DA443D0201E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{05842546-7977-4163-A4EC-8DA443D0201E}.Debug|Win32.Build.0 = Debug|Win32
+		{05842546-7977-4163-A4EC-8DA443D0201E}.Release|Win32.ActiveCfg = Release|Win32
+		{05842546-7977-4163-A4EC-8DA443D0201E}.Release|Win32.Build.0 = Release|Win32
+		{D78871F8-3206-4E86-AA4B-D240683835C8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D78871F8-3206-4E86-AA4B-D240683835C8}.Debug|Win32.Build.0 = Debug|Win32
+		{D78871F8-3206-4E86-AA4B-D240683835C8}.Release|Win32.ActiveCfg = Release|Win32
+		{D78871F8-3206-4E86-AA4B-D240683835C8}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
