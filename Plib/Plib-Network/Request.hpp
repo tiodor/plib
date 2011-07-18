@@ -101,19 +101,24 @@ namespace Plib
 				
 				// Initialize the connect info.
 				m_rConnectInfo.DeepCopy( _cnntInfo );
+				if ( m_rpConnect.RefNull() ) m_rpConnect = RpConnect( );
+				// Try to connect to the peer server.
+				if ( !m_rpConnect->Connect( _cnntInfo.Host(), _cnntInfo.Port(), _cnntInfo.TimeOut()/2 ) )
+					m_LastError = "On Connect, " + Plib::Text::LastErrorMessage;
 				
 				m_createByService = false;
 				m_beSerialized = false;
 			}
 			
-			// Initialize the Request by the creator and also initialize
+			// Initialize the Request by the initializer and also initialize
 			// the parser.
-			void Create( const typename _TyParser::Creator & _ctor )
+			template < typename _TyInitializer >
+			void Create( const _TyInitializer & _initer )
 			{
 				if ( m_rpParser.RefNull() )
 					m_rpParser = RpParser();
-				m_rConnectInfo.DeepCopy( _ctor.ConnectInfo() );
-				m_rpParser->Initialize( _ctor );
+				m_rConnectInfo.DeepCopy( _initer.ConnectInfo() );
+				m_rpParser->Initialize( _initer );
 				m_createByService = false;
 				m_beSerialized = false;
 			}	
@@ -238,6 +243,19 @@ namespace Plib
 				return m_LastError;
 			}
 			
+			// Connect to the peer server
+			INLINE bool Connect( ) {
+				// Server Request cannot invoke this method.
+				if ( m_createByService == true ) return false;
+				if ( m_rpConnect->IsConnect( ) ) return true;
+				bool _ret = m_rpConnect->Connect( m_rConnectInfo.Host(), 
+					m_rConnectInfo.Port(), m_rConnectInfo.TimeOut() / 2 );
+				if ( _ret == false ) {
+					// Update the error message.
+					m_LastError = "On Connect, " + Plib::Text::LastErrorMessage;
+				}
+				return _ret;
+			}
 			// Clear the inner buffer.
 			INLINE void ClearBuffer( )
 			{
@@ -366,8 +384,9 @@ namespace Plib
 			}
 			// Initialize the Request by the creator and also initialize
 			// the parser.
-			INLINE void Create( const typename _TyParser::Creator & _ctor ) {
-				TFather::_Handle->_PHandle->Create( _ctor );
+			template < typename _TyInitializer >
+			INLINE void Create( const _TyInitializer & _initer ) {
+				TFather::_Handle->_PHandle->Create( _initer );
 			}
 			// if the request is created by the service,
 			// use this function to check if has new data incoming.
@@ -392,7 +411,10 @@ namespace Plib
 			INLINE const Plib::Text::RString & GetErrorMessage( ) const {
 				return TFather::_Handle->_PHandle->GetErrorMessage();
 			}
-			
+			// Connect to the Peer Server
+			INLINE bool Connect( ) {
+				TFather::_Handle->_PHandle->Connect();
+			}
 			INLINE void ClearBuffer( ) {
 				TFather::_Handle->_PHandle->ClearBuffer();
 			}
