@@ -39,6 +39,7 @@ namespace Plib
 			Uint32						Port;
 			Uint32						TimeOut;
 			bool						KeepAlive;
+			Plib::Text::RString			Identify;
 			
 			tagCONNECTINFO & operator = ( const tagCONNECTINFO & rtci )
 			{
@@ -46,6 +47,7 @@ namespace Plib
 				Port = rtci.Port;
 				TimeOut = rtci.TimeOut;
 				KeepAlive = rtci.KeepAlive;
+				Identify = rtci.Identify;
 				return *this;
 			}
 		} CONNECTINFO;
@@ -91,6 +93,14 @@ namespace Plib
 			}
 			void SetKeepAlive( bool _keepalive ) {
 				TFather::_Handle->_PHandle->KeepAlive = _keepalive;
+			}
+			
+			// Identify
+			Plib::Text::RString Identify( ) const {
+				return TFather::_Handle->_PHandle->Identify;
+			}
+			void SetIdentify( Plib::Text::RString _identify ) {
+				TFather::_Handle->_PHandle->Identify.DeepCopy( _identify );
 			}
 			
 			const static RConnInfo	Null;
