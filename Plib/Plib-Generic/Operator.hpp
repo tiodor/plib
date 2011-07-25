@@ -62,6 +62,12 @@ namespace Plib
 				return ( _l == _r );
 			}
 		};
+		
+		template < typename _TyObject1, typename _TyObject2 > struct TypeEqual {
+			INLINE bool operator () ( const _TyObject1 & _l, const _TyObject2 & _r ) {
+				return ( _l == _r );
+			}
+		};
 	}
 }
 
