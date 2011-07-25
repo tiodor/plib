@@ -301,6 +301,11 @@ namespace Plib
 				m_rConnectInfo->KeepAlive = _keepAlive;
 			}
 			
+			// Get the connection's identify.
+			const Plib::Text::RString & Identify() const {
+				return m_rConnectInfo->Identify;
+			}
+			
 			// Get the Parser of the request.
 			RpParser & GetParser() {
 				return m_rpParser;
@@ -413,7 +418,7 @@ namespace Plib
 			}
 			// Connect to the Peer Server
 			INLINE bool Connect( ) {
-				TFather::_Handle->_PHandle->Connect();
+				return TFather::_Handle->_PHandle->Connect();
 			}
 			INLINE void ClearBuffer( ) {
 				TFather::_Handle->_PHandle->ClearBuffer();
@@ -450,6 +455,11 @@ namespace Plib
 			
 			INLINE void SetKeepAlive( bool _keepAlive ) {
 				TFather::_Handle->_PHandle->SetKeepAlive( _keepAlive );
+			}
+			
+			// Get the connect's identify
+			INLINE const Plib::Text::RString & Identify( ) const {
+				return TFather::_Handle->_PHandle->Identify( );
 			}
 			
 			// Get the Parser of the request.

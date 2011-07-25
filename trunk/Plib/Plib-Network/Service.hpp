@@ -31,7 +31,7 @@ namespace Plib
 		// Common Network Services Framework
 		// The parser is used to create the request/response object.
 		// The poller is used to listen on the certain port.
-		template< typename _TyParser, typename _TyPoller >
+		template< typename _TyParser, typename _TyPoller = Selector<SyncSock> >
 		class Service
 		{
 		public:
@@ -228,7 +228,7 @@ namespace Plib
 				_MaxIdleTime = _maxIdleTime;
 			}
 			
-			void SetMaxSockCoutPreThread( Uint32 _count )
+			void SetMaxSockCountPreThread( Uint32 _count )
 			{
 				_MaxSockCountPreThread = _count;
 			}

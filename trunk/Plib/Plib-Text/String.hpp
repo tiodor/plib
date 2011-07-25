@@ -627,7 +627,7 @@ namespace Plib
 			}
 			// Bool Value
 			INLINE bool BoolValue() const {
-				return _Basic_C::Bool( _Buffer, _Length );
+				return _Basic_C::BoolValue( _Buffer, _Length );
 			}
 		};
 		

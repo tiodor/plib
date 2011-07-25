@@ -122,6 +122,20 @@ namespace Plib
 				for ( Uint32 i = 0; i < _count; ++i ) TFather::__Remove( _start );
 			}
 			
+			// Find if the object is in the list.
+			// This method is not very effective.
+			INLINE Uint32 Find( const _TyObject & _vobj ) {
+				PLIB_THREAD_SAFE;
+				if ( TFather::m_AllSize == 0 ) return (Uint32)-1;
+				Uint32 _start = TFather::__IsHeadEqualHeadFree() ? 0 : 1;
+				Uint32 _end = TFather::__IsTailEqualTailFree() ? 
+					TFather::m_CacheUsed: 
+					TFather::m_CacheUsed - 1;
+				Uint32 _pos = __BinarySearch( _vobj, _start, _end );
+				if ( TFather::__Get( _pos ) == _vobj ) return _pos;
+				return (Uint32)-1;
+			}
+			
 			INLINE void SortInsert( const _TyObject & _vobj ) {
 				PLIB_THREAD_SAFE;
 				Uint32 _start = TFather::__IsHeadEqualHeadFree() ? 0 : 1;
