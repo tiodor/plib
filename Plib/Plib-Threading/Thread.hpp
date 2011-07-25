@@ -125,7 +125,8 @@ namespace Plib
 			}
 		};
 		// Static
-		template < > Uint32 __ThreadInfo< 0 >::__stackSize = PLIB_THREAD_STACK_SIZE;
+		template < Uint32 _dummy > 
+			Uint32 __ThreadInfo< _dummy >::__stackSize = PLIB_THREAD_STACK_SIZE;
 		// Thread Info
 		typedef __ThreadInfo< 0 >			ThreadInfo;
 		

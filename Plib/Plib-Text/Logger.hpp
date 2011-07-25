@@ -91,7 +91,7 @@ namespace Plib
 		protected:
 			class __LoggerWriter
 			{
-				friend class Logger;
+				friend class Logger_< _dummy >;
 
 			protected:
 				// The Father Logger Object.
@@ -311,6 +311,8 @@ namespace Plib
 				__FlushTimer += std::make_pair( this, &Logger_<_dummy>::__FlushLogData );
 				__FlushTimer.SetEnable( true );
 			}
+			
+			~Logger_<_dummy>( ) { __FlushLogData( ); }
 			
 			// Common configure.
 			INLINE void SetFlushInterval( Uint32 _milliseconds ) {

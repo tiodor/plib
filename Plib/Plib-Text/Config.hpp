@@ -161,7 +161,8 @@ namespace Plib
 			// Parse the incoming string.
 			bool Parse( const RString & _stringConfig )
 			{
-				Plib::Generic::RArray< RString > _LineArray = _stringConfig.Split("\r\n" + m_Params[CFG_MVSPILT]);
+				Plib::Generic::RArray< RString > _LineArray = 
+					_stringConfig.Split("\r\n" + m_Params[CFG_MVSPILT]);
 				return Parse( _LineArray );
 			}
 			
@@ -213,21 +214,30 @@ namespace Plib
 				m_KeyArrayValue[_key] = _rArray;
 				return _rArray;
 			}
+			
+			// Check if contains specified key.
+			INLINE bool ContainsKey( const char * _key ) const {
+				return m_KeyValuePair.find( RString(_key) ) != m_KeyValuePair.end();
+			}
+			INLINE bool ContainsKey( const RString & _key ) const {
+				return m_KeyValuePair.find( _key ) != m_KeyValuePair.end();
+			}
 		};
 		
 		// Referernce Version of Config_
-		class Config : public Plib::Generic::Reference< Config_ >
+		template < Uint32 _dummy >
+		class Config_r : public Plib::Generic::Reference< Config_ >
 		{
 			typedef Plib::Generic::Reference< Config_ >		TFather;
 		protected:
-			Config( bool _beNull ) : TFather( false ) { CONSTRUCTURE; }
+			Config_r<_dummy>( bool _beNull ) : TFather( false ) { CONSTRUCTURE; }
 		public:
 			// C'Str
-			Config( ) : TFather( true ) { CONSTRUCTURE; }
-			Config( const Config & rhs ) : TFather( rhs ) { CONSTRUCTURE; }
-			~Config( ) { DESTRUCTURE; }
+			Config_r<_dummy>( ) : TFather( true ) { CONSTRUCTURE; }
+			Config_r<_dummy>( const Config_r<_dummy> & rhs ) : TFather( rhs ) { CONSTRUCTURE; }
+			~Config_r<_dummy>( ) { DESTRUCTURE; }
 			// Open a configure file.
-			Config( const RString & _filePath ) : TFather( true ) {
+			Config_r<_dummy>( const RString & _filePath ) : TFather( true ) {
 				CONSTRUCTURE;
 				TFather::_Handle->_PHandle->ParseConfigFile( _filePath );
 			}
@@ -265,26 +275,35 @@ namespace Plib
 				return TFather::_Handle->_PHandle->GetArray( _key );
 			}
 			
+			// Check if contains specified key
+			INLINE bool ContainsKey( const char * _key ) const {
+				return TFather::_Handle->_PHandle->ContainsKey( _key );
+			}
+			INLINE bool ContainsKey( const RString & _key ) const {
+				return TFather::_Handle->_PHandle->ContainsKey( _key );
+			}
 			// Get another config
-			Config GetConfig( const char * _key ) {
-				Config _2ndConfig;
+			Config_r<_dummy> GetConfig( const char * _key ) {
+				Config_r<_dummy> _2ndConfig;
 				_2ndConfig.Parse( TFather::_Handle->_PHandle->GetArray(_key) );
 				return _2ndConfig;
 			}
-			Config GetConfig( const RString & _key ) {
-				Config _2ndConfig;
+			Config_r<_dummy> GetConfig( const RString & _key ) {
+				Config_r<_dummy> _2ndConfig;
 				_2ndConfig.Parse( TFather::_Handle->_PHandle->GetArray(_key) );
 				return _2ndConfig;
 			}
 			
 			// Null Object
-			static Config			Null;
-			static Config CreateNullConfig( ) {
-				return Config( false );
+			static Config_r<_dummy>			Null;
+			static Config_r<_dummy> CreateNullConfig( ) {
+				return Config_r<_dummy>( false );
 			}
 		};
 		
-		Config	Config::Null( false );
+		template < Uint32 _dummy >
+		Config_r<_dummy>	Config_r<_dummy>::Null( false );
+		typedef Config_r<0>	Config;
 	}
 }
 

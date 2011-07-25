@@ -309,21 +309,22 @@ namespace Plib
 		
 		// Reference Version of File Stream.
 		// Read stream.
-		class ReadStream : public Plib::Generic::Reference< FileStream_ >
+		template < Uint32 _dummy >
+		class ReadStream_ : public Plib::Generic::Reference< FileStream_ >
 		{
 			typedef Plib::Generic::Reference< FileStream_ >	TFather;
 		protected:
-			ReadStream( ) : TFather( false ) { CONSTRUCTURE; }
+			ReadStream_( bool _bNull ) : TFather( false ) { CONSTRUCTURE; }
 		public:
 			// C'Str, set the file path and open for reading.
-			ReadStream( const RString & _filePath ) : TFather( true ) {
+			ReadStream_( const RString & _filePath ) : TFather( true ) {
 				CONSTRUCTURE;
 				TFather::_Handle->_PHandle->FilePath( _filePath );
 				TFather::_Handle->_PHandle->OpenRead( );
 			}
-			ReadStream( const ReadStream & rhs ) : TFather( rhs )
+			ReadStream_( const ReadStream_ & rhs ) : TFather( rhs )
 				{ CONSTRUCTURE; }
-			~ReadStream( ) { DESTRUCTURE; }
+			~ReadStream_( ) { DESTRUCTURE; }
 						
 			// Close the file stream.
 			INLINE void Close( ) { TFather::_Handle->_PHandle->Close( ); }
@@ -339,32 +340,35 @@ namespace Plib
 			INLINE operator bool ( ) const { return TFather::_Handle->_PHandle->operator bool(); }
 			
 			// Null object.
-			static ReadStream			Null;
+			static ReadStream_			Null;
 			
 			// Create a null object.
-			static ReadStream CreateNullReadStream( ) {
-				return ReadStream( );
+			static ReadStream_ CreateNullReadStream( ) {
+				return ReadStream_( false );
 			}
 		};
 		// Static null readstream.
-		ReadStream	ReadStream::Null;
+		template < Uint32 _dummy >
+		ReadStream_<_dummy>	ReadStream_<_dummy>::Null;
+		typedef ReadStream_<0> ReadStream;
 		
 		// Write Stream..
-		class WriteStream : public Plib::Generic::Reference< FileStream_ >
+		template< Uint32 _dummy >
+		class WriteStream_ : public Plib::Generic::Reference< FileStream_ >
 		{
 			typedef Plib::Generic::Reference< FileStream_ >	TFather;
 		protected:
-			WriteStream( ) : TFather( false ) { CONSTRUCTURE; }
+			WriteStream_( bool _bNull ) : TFather( false ) { CONSTRUCTURE; }
 		public:
 			// C'Str, set the file path and open for reading.
-			WriteStream( const RString & _filePath ) : TFather( true ) {
+			WriteStream_( const RString & _filePath ) : TFather( true ) {
 				CONSTRUCTURE;
 				TFather::_Handle->_PHandle->FilePath( _filePath );
 				TFather::_Handle->_PHandle->OpenWrite( );
 			}
-			WriteStream( const WriteStream & rhs ) : TFather( rhs )
+			WriteStream_( const WriteStream_ & rhs ) : TFather( rhs )
 				{ CONSTRUCTURE; }
-			~WriteStream( ) { DESTRUCTURE; }
+			~WriteStream_( ) { DESTRUCTURE; }
 						
 			// Close the file stream.
 			INLINE void Close( ) { TFather::_Handle->_PHandle->Close( ); }
@@ -381,32 +385,35 @@ namespace Plib
 			INLINE operator bool ( ) const { return TFather::_Handle->_PHandle->operator bool(); }
 			
 			// Null object.
-			static WriteStream			Null;
+			static WriteStream_			Null;
 			
 			// Create a null object.
-			static WriteStream CreateNullWriteStream( ) {
-				return WriteStream( );
+			static WriteStream_ CreateNullWriteStream( ) {
+				return WriteStream_( false );
 			}
 		};
 		// Static null readstream.
-		WriteStream	WriteStream::Null;
+		template < Uint32 _dummy >
+		WriteStream_<_dummy>	WriteStream_<_dummy>::Null;
+		typedef WriteStream_<0>	WriteStream;
 		
 		// Append Stream..
-		class AppendStream : public Plib::Generic::Reference< FileStream_ >
+		template < Uint32 _dummy >
+		class AppendStream_ : public Plib::Generic::Reference< FileStream_ >
 		{
 			typedef Plib::Generic::Reference< FileStream_ >	TFather;
 		protected:
-			AppendStream( ) : TFather( false ) { CONSTRUCTURE; }
+			AppendStream_( bool _bNull ) : TFather( false ) { CONSTRUCTURE; }
 		public:
 			// C'Str, set the file path and open for reading.
-			AppendStream( const RString & _filePath ) : TFather( true ) {
+			AppendStream_( const RString & _filePath ) : TFather( true ) {
 				CONSTRUCTURE;
 				TFather::_Handle->_PHandle->FilePath( _filePath );
 				TFather::_Handle->_PHandle->OpenAppend( );
 			}
-			AppendStream( const AppendStream & rhs ) : TFather( rhs )
+			AppendStream_( const AppendStream_ & rhs ) : TFather( rhs )
 				{ CONSTRUCTURE; }
-			~AppendStream( ) { DESTRUCTURE; }
+			~AppendStream_( ) { DESTRUCTURE; }
 						
 			// Close the file stream.
 			INLINE void Close( ) { TFather::_Handle->_PHandle->Close( ); }
@@ -423,15 +430,17 @@ namespace Plib
 			INLINE operator bool ( ) const { return TFather::_Handle->_PHandle->operator bool(); }
 			
 			// Null object.
-			static AppendStream			Null;
+			static AppendStream_			Null;
 			
 			// Create a null object.
-			static AppendStream CreateNullAppendStream( ) {
-				return AppendStream( );
+			static AppendStream_ CreateNullAppendStream( ) {
+				return AppendStream_( true );
 			}
 		};
 		// Static null readstream.
-		AppendStream	AppendStream::Null;
+		template < Uint32 _dummy >
+		AppendStream_<_dummy>	AppendStream_<_dummy>::Null;
+		typedef AppendStream_<0>	AppendStream;
 		
 		/*
 		 * Directory
