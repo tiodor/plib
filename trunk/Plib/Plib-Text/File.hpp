@@ -127,8 +127,9 @@ namespace Plib
 			FileStream_( ) : __Handle( -1 ) { }
 			// Set the file path
 			INLINE void FilePath( const RString & _filePath ) {
-				assert( _filePath != RString::Null );
-				__FilePath.DeepCopy( _filePath );
+				if ( !_filePath.RefNull() )
+				//if ( _filePath != RString::Null )
+					__FilePath.DeepCopy( _filePath );
 			}
 			
 			// C'Str, init the filestream with the filepath,
