@@ -166,9 +166,9 @@ namespace Plib
 			// internal object.
 			INLINE bool operator == ( const Reference< _TyInternal, _TyInterAlloc > & RP ) const
 			{
-				return ( _Handle == RP._Handle ) ? true : 
-					( _Handle == NULL ? false : ( RP._Handle == NULL ? false :
-						(*_Handle->_PHandle == *(RP._Handle->_PHandle))));
+				if ( _Handle == RP._Handle ) return true;
+				if ( _Handle == NULL || RP._Handle == NULL ) return false;
+				return (*_Handle->_PHandle == *(RP._Handle->_PHandle));
 			}
 			
 			INLINE bool operator == ( const _TyInternal & _Int ) const
