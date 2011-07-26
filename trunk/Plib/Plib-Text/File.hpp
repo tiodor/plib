@@ -292,7 +292,7 @@ namespace Plib
 					if ( _c == '\n' ) break;
 					_line += _c;
 				}
-				if ( _ret < 0 ) return RString::Null;
+				if ( _ret <= 0 ) return RString::Null;
 				return _line.Trim( );
 			}
 			
