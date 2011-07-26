@@ -175,6 +175,7 @@ namespace Plib
 				ReadStream rsConfig( _filePath );
 				for ( ; ; ) {
 					RString _line = rsConfig.ReadLine( );
+					if ( _line == RString::Null ) break;
 					if ( __ParseIncomingString( _line ) == false )
 						return false;
 				}
