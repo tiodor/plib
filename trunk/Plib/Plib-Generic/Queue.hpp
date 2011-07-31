@@ -33,7 +33,7 @@ namespace Plib
 		template< 
 			typename _TyObject, 
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
-		> class RQueue;
+		> class Queue;
 		
 		/*
 		 * This is a queue container based on Array Organizer like array list.
@@ -44,7 +44,7 @@ namespace Plib
 			typename _TyObject, 
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
 		>
-		class Queue : public ArrayOrganizer< _TyObject, _TyAlloc >
+		class Queue_ : public ArrayOrganizer< _TyObject, _TyAlloc >
 		{
 		public:
 			// The father alias.
@@ -52,11 +52,11 @@ namespace Plib
 		
 			// Default C'Str.
 			// Create an empty dequeue.
-			Queue< _TyObject, _TyAlloc >( ) : TFather( ) { CONSTRUCTURE; }
+			Queue_< _TyObject, _TyAlloc >( ) : TFather( ) { CONSTRUCTURE; }
 			
 			// Copy C'str
-			Queue< _TyObject, _TyAlloc >( 
-				const Queue< _TyObject, _TyAlloc > & rhs )
+			Queue_< _TyObject, _TyAlloc >( 
+				const Queue_< _TyObject, _TyAlloc > & rhs )
 				: TFather( ) 
 			{
 				CONSTRUCTURE;
@@ -64,7 +64,7 @@ namespace Plib
 				for ( Uint32 i = 0; i < rhs.Size(); ++i )
 					TFather::__AppendLast( rhs.__Get(i) ); 
 			}
-			~Queue< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
+			~Queue_< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
 				
 			// Push a new object to the end of the list.
 			INLINE void Push( const _TyObject & _vobj ) { TFather::__AppendLast( _vobj ); }
@@ -89,35 +89,35 @@ namespace Plib
 			INLINE void Clear( ) { TFather::__Clear(); }
 		};
 		
-		// Reference Version of Queue
-		// The Reference Queue is always used to be returned for multiple value.
+		// Reference Version of Queue_
+		// The Reference Queue_ is always used to be returned for multiple value.
 		template< 
 			typename _TyObject, 
 			typename _TyAlloc
 		>
-		class RQueue : public Reference< Queue< _TyObject, _TyAlloc > >
+		class Queue : public Reference< Queue_< _TyObject, _TyAlloc > >
 		{
 		public:
-			typedef Reference< Queue< _TyObject, _TyAlloc > >	TFather;
+			typedef Reference< Queue_< _TyObject, _TyAlloc > >	TFather;
 			
 		protected:
 			// For Null Array
-			RQueue< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
+			Queue< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
 			{ CONSTRUCTURE; }
 			
 		public:
 			// Default C'Str.
 			// Create an empty queue
-			RQueue< _TyObject, _TyAlloc >( )
+			Queue< _TyObject, _TyAlloc >( )
 				: TFather( true ) { CONSTRUCTURE; }
-			RQueue< _TyObject, _TyAlloc >( const RQueue< _TyObject, _TyAlloc > & rhs )
+			Queue< _TyObject, _TyAlloc >( const Queue< _TyObject, _TyAlloc > & rhs )
 				: TFather( rhs ) { CONSTRUCTURE; }
 			
 			// Copy C'str
-			RQueue< _TyObject, _TyAlloc >( 
-				const Queue< _TyObject, _TyAlloc > & rhs )
+			Queue< _TyObject, _TyAlloc >( 
+				const Queue_< _TyObject, _TyAlloc > & rhs )
 				: TFather( rhs ) { CONSTRUCTURE;  }
-			~RQueue< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
+			~Queue< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
 
 			// Push a new object to the end of the list.
 			INLINE void Push( const _TyObject & _vobj ) { 
@@ -142,17 +142,17 @@ namespace Plib
 			// The only way is to start a two-layer-loop to release all object.
 			INLINE void Clear( ) { TFather::_Handle->_PHandle->Clear(); }
 			
-			const static RQueue< _TyObject, _TyAlloc > Null;
+			const static Queue< _TyObject, _TyAlloc > Null;
 			
-			static RQueue< _TyObject, _TyAlloc > CreateNullQueue( )
+			static Queue< _TyObject, _TyAlloc > CreateNullQueue( )
 			{
-				return RQueue< _TyObject, _TyAlloc >( false );
+				return Queue< _TyObject, _TyAlloc >( false );
 			}			
 		};
 		
 		template< typename _TyObject, typename _TyAlloc >
-			const RQueue< _TyObject, _TyAlloc > 
-				RQueue< _TyObject, _TyAlloc >::Null( false );
+			const Queue< _TyObject, _TyAlloc > 
+				Queue< _TyObject, _TyAlloc >::Null( false );
 	}
 }
 

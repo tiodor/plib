@@ -241,8 +241,10 @@ namespace Plib
 #ifdef PLIB_LOCK_DEBUG
 	#if _DEF_WIN32
 			_threadId = (Uint64)GetCurrentThreadId( );
-	#else
+	#elif _DEF_LINUX
 			_threadId = (Uint64)gettid();
+	#else
+			_threadId = (Uint64)pthread_self();
 	#endif
 #endif
         }

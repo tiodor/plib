@@ -31,109 +31,152 @@ namespace Plib
 		// Common Network Services Framework
 		// The parser is used to create the request/response object.
 		// The poller is used to listen on the certain port.
-		template< typename _TyParser, typename _TyPoller = Selector<SyncSock> >
+		template< typename _TyRequest, typename _TyPoller = Selector<SyncSock> >
 		class Service
 		{
 		public:
 			// Type definition of important objects.
 			typedef ListenerFrame< _TyPoller >							TService;
 			typedef typename _TyPoller::ClientSocketT					TConnect;
-			typedef Request< _TyParser, TConnect >						RpRequest;
-			typedef Response< _TyParser, TConnect >						RpResponse;
-			typedef Plib::Generic::Reference< _TyParser >				RpParser;
-			typedef Plib::Generic::Reference< TConnect >				RpConnect;
+			typedef _TyRequest											TRequest;
+			typedef typename _TyRequest::TResponse						TResponse;
+			typedef Plib::Generic::Reference< TConnect >				RefConnect;
 		
-			typedef Plib::Threading::Thread<void()>		WorkThreadT;
+			// Delegate & Internal Type
+			typedef Plib::Threading::Thread<void()>						WorkThreadT;
+			typedef Plib::Generic::Delegate< TResponse( TRequest ) >	WorkFlowT;
+			typedef Plib::Generic::Delegate< void( Uint32 ) >			SvrErrorT;
+			typedef Plib::Generci::Delegate< void( 
+				Service< _TyRequest, _TyPoller > * ) >					SvrFatalT;
+			typedef Plib::Generic::RArray< WorkThreadT * >				ThreadArrayT;
+			typedef Plib::Generic::RQueue< TRequest >					ReqQueueT;
+			typedef Plib::Generic::RPool< TRequest >					ReqPoolT;
 			
+			
+			// Lock Object
+			typedef Plib::Threading::Mutex								LockT;
+			typedef Plib::Threading::Semaphore							SemT;
+			
+			// Timer
+			typedef Plib::Threading::Timer								TimeT;
+			
+			// Self Re-Type
+			typedef Service< _TyRequest, _TyPoller >					ServiceT;
 		protected:
+			
+			/*
+			 * This is the internal queue for long term socket.
+			 * it will manage a queue to all connected socket,
+			 * and will auto check if there is new data incoming.
+			 * When the business logic takes too many time or
+			 * there are too many sockets in this queue, it will
+			 * ask the Service to create more threads.
+			 */
+			ReqQueueT					_IncomingReqQueue;
+			SemT						_IncomingReqSem;
+			
+			// these two queues are used when checking all request
+			// in the queue, pop out from one queue and push to 
+			// another queue.
+			ReqQueueT					_LongTermReqQueue[2];
+			ReqQueueT * 				_WorkingLongTermReqQueue;
+			// The following lock object is to make the switching of
+			// working long term request queue be thread safe.
+			LockT						_LongTermReqLock;
+			
 			
 			class InnerQueue 
 			{
 			protected:
-				Plib::Generic::RQueue< RpRequest >						_innerQueue;
-				Plib::Generic::RQueue< RpRequest >						_innerReuseQueue[2];
-				Plib::Generic::RQueue< RpRequest > *					_workingReuseQueue;
-				Plib::Threading::Mutex									_reuseQueueLock;
-				Plib::Threading::Semaphore								_innerSem;
-				Plib::Threading::StopWatch								_timer;
-				Service< _TyParser, _TyPoller > *						_theService;
-				Plib::Threading::Thread< void() >						_CheckThread;
+				ReqQueueT				_innerQueue;
+				// these two queues are used when checking all request
+				// in the queue, pop out from one queue and push to 
+				// another queue.
+				ReqQueueT				_innerReuseQueue[2];
+				ReqQueueT *				_workingReuseQueue;
 				
+				// these two objects are used to make sure the 
+				// data is safe when processing the requests in
+				// multi-thread env.
+				LockT					_reuseQueueLock;
+				SemT					_innerSem;
+				
+				// these objects are used to monitor the server's statue.
+				// if the requests are too many, tell the service to 
+				// create more thread.
+				TimeT					_timer;
+				ServiceT				_theService;
+				WorkThreadT				_CheckThread;
+
+				// Plib basic thread safe.
 				PLIB_THREAD_SAFE_DEFINE;
 				
 			protected:
-				void __SocketChecker( )  {
-					while ( Plib::Threading::ThreadSys::Running() ) {
+				INLINE void __SocketCheckCallBack( ) {
+					while( Plib::Threading::ThreadSys::Running() ) {
 						bool __hasReadableSocket = false;
-						// Get the old reuse queue.
-						Plib::Generic::RQueue< RpRequest > * _checkQueue = _workingReuseQueue;
-						_reuseQueueLock.Lock();
-						// Swap the reuse queue.
+						ReqQueueT * _checkQueue = _workingReuseQueue;
+						// Swap the reuse queue
+						_reuseQueueLock.Lock( );
 						_workingReuseQueue = (_workingReuseQueue == _innerReuseQueue ) ? 
 							_innerReuseQueue + 1 : _innerReuseQueue;
-						_reuseQueueLock.UnLock();
+						_reuseQueueLock.UnLock( );
 						
-						// Check the socket one by one.
-						while ( !_checkQueue->Empty() ) {
-							RpRequest _req = _checkQueue->Head();
-							_checkQueue->Pop();
-							// get the connection.
-							RpConnect _cnnt = _req.GetConnect();
-							if ( _cnnt.RefNull() ) {
-								_req.EndRequest();
-								// put into recycle
-								_theService->RequestIdlePool.Return( _req );
+						// Check the request one by one.
+						while ( !_checkQueue->Empty( ) ) {
+							TRequest _req = _checkQueue->Head( );
+							_checkQueue->Pop( );
+							int _statue = _req.Check( );
+							if ( _statue < 0 ) {
+								// Error Happened
+								_req.EndRequest( );
+								_theService->RecycleRequest( _req );
 								continue;
 							}
-							// check socket statue.
-							int _ret = _req.Check();
-							if ( _ret == 0 ) {
-								_workingReuseQueue->Push( _req );
-								continue;
+							if ( _statue != 0 ) {
+								// New request.
+								RArray< TRequest > _reqCloneGroup = _req.Clone( );
+								for ( Uint32 i = 0; i < _reqCloseGroup.Size(); ++i ) {
+									_innerQueue.Push( _reqCloseGroup[i] );
+									_innerSem.Release( );1
+								}
+								__hasReadableSocket = true;
 							}
-							// on error happen
-							if ( _ret < 0 ) {
-								_req.EndRequest();
-								// put into recycle
-								_theService->ServicePort.ReleaseSocket( _cnnt, false );
-								_theService->RequestIdlePool.Return( _req );
-								continue;
-							}
-							// The Socket has some new incoming data.
-							_innerQueue.Push( _req );
-							_innerSem.Release();
-							__hasReadableSocket = true;
+							_workingReuseQueue->Push( _req );
 						}
-						
-						if ( __hasReadableSocket == false ) Plib::Threading::ThreadSys::Sleep( 1 );
+						if ( !__hasReadableSocket ) Plib::Threading::ThreadSys::Sleep(1);
 					}
 				}
 			public:
+				// Default initialize.
 				InnerQueue( ) 
-					: _workingReuseQueue(_innerReuseQueue), _innerSem(0, 0xFFFF), _theService( NULL ) 
+					: 	_workingReuseQueue(_innerReuseQueue), 
+						_innerSem(0, 0xFFFF), 
+						_theService( NULL ) 
 				{
 					CONSTRUCTURE;
-					_CheckThread.Jobs += std::make_pair( this, &InnerQueue::__SocketChecker );
+					// Bind the thread's callback.
+					_CheckThread.Jobs += std::make_pair( 
+						this, &InnerQueue::__SocketCheckCallBack );
 				}
-				~InnerQueue( )
-				{
-					DESTRUCTURE;
-				}
+				// Default d'str
+				~InnerQueue( ) { DESTRUCTURE; }
 				
-				void SetService( Service< _TyParser, _TyPoller > * _service )
-				{
-					_theService = _service;
-				}
+				// Set the service point.
+				INLINE void SetService( ServiceT * _service ) { _theService = _service; }
 				
-				void StartChecking( )
-				{
-					_CheckThread.Start();
-				}
+				// Start the checking thread, must be
+				// invoke after SetService.
+				INLINE void StartChecking( ) { _CheckThread.Start(); }
 				
-				RpRequest Get( Uint32 _timeOut ) {
-					if ( !_innerSem.Get( _timeOut ) ) {
+				// Get a request from the queue.
+				TRequest Get( Uint32 _timeOut ) {
+					if ( !_innerSem.Get( _timeOut ) ) 
+					{
 						PLIB_THREAD_SAFE;
-						_theService->__CheckReuseThreadAndMinus( _timer );
+						// Checking the timer and make decidion if
+						// need to close some threads.
+						_theService->ReuseThreadChecking( _timer );
 						return RpRequest::Null;
 					}
 					PLIB_THREAD_SAFE;
@@ -144,9 +187,12 @@ namespace Plib
 				
 				void Return( RpRequest _req ) {
 					if ( _req.RefNull() ) return;
+					
+					// Return one request.
 					_reuseQueueLock.Lock();
 					_workingReuseQueue->Push( _req );
 					_reuseQueueLock.UnLock();
+					
 					PLIB_THREAD_SAFE;
 					_theService->__CheckReuseThreadAndAdd( _innerQueue.Size() );
 					// Recalculate the time
@@ -154,8 +200,11 @@ namespace Plib
 				}
 			};
 			
-			friend class InnerQueue;
-			
+			/*
+			 * This is the inner request pool
+			 * to store common request objects and use for 
+			 * bind with new incoming socket.
+			 */
 			class InnerPool
 			{
 			protected:

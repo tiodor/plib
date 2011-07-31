@@ -36,10 +36,12 @@ namespace Plib
 		template < 
 			typename _TyObject, 
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject > >
-		class Pool
+		class Pool_
 		{
+		public:
+			typedef _TyObject *			PointT;
 		protected:
-			RStack< _TyObject * > 		_ObjStackPool;
+			Stack< _TyObject * > 		_ObjStackPool;
 			Uint32 						_AllCount;
 			
 			static _TyAlloc				gObjectAlloc;
@@ -47,13 +49,15 @@ namespace Plib
 			
 		protected:
 			// No copy
-			Pool< _TyObject, _TyAlloc >( const Pool< _TyObject, _TyAlloc > & rhs );
-			Pool< _TyObject, _TyAlloc > & operator = ( const Pool< _TyObject, _TyAlloc > & rhs );
+			Pool_< _TyObject, _TyAlloc >( 
+				const Pool_< _TyObject, _TyAlloc > & rhs );
+			Pool_< _TyObject, _TyAlloc > & operator = ( 
+				const Pool_< _TyObject, _TyAlloc > & rhs );
 		public:
 			
-			Pool< _TyObject, _TyAlloc >( )
+			Pool_< _TyObject, _TyAlloc >( )
 				: _AllCount( 0 ) { CONSTRUCTURE; }
-			~Pool< _TyObject, _TyAlloc >( )
+			~Pool_< _TyObject, _TyAlloc >( )
 			{
 				DESTRUCTURE;
 				while ( !_ObjStackPool.Empty( ) ) {
@@ -65,30 +69,30 @@ namespace Plib
 			
 			// Get one object from the pool
 			// If the pool is empty, create a new object.
-			INLINE _TyObject & Get( ) {
+			INLINE PointT Get( ) {
 				PLIB_THREAD_SAFE;
 				if ( _ObjStackPool.Empty() ) {
 					_TyObject * _pObj = gObjectAlloc.Create( );
 					SELF_INCREASE( _AllCount );
-					return *_pObj;
+					return _pObj;
 				}
 				else {
 					_TyObject * _pObj = _ObjStackPool.Top( );
 					_ObjStackPool.Pop( );
-					return *_pObj;
+					return _pObj;
 				}
 			}
 			
 			// Return the object into the pool
 			// The internal stack object is thread-safe, 
 			// so we do not need to define PLIB_THREAD_SAFE again.
-			INLINE void Return( _TyObject & _Item ) {
+			INLINE void Return( PointT _Item ) {
 				PLIB_THREAD_SAFE;
 				if ( (_AllCount / 2) < _ObjStackPool.Size( ) ) {
-					gObjectAlloc.Destroy( &_Item );
+					gObjectAlloc.Destroy( _Item );
 					SELF_DECREASE( _AllCount );
 				} else {
-					_ObjStackPool.Push( &_Item );
+					_ObjStackPool.Push( _Item );
 				}
 			}
 			
@@ -124,10 +128,11 @@ namespace Plib
 		
 		// For Basic Char Type
 		template < typename _TyAlloc >
-		class Pool< BasicCharBufferT, _TyAlloc >
+		class Pool_< BasicCharBufferT, _TyAlloc >
 		{
+			typedef BasicCharBufferT *			PointT;
 		protected:
-			RStack< BasicCharBufferT * > 		_ObjStackPool;
+			Stack< BasicCharBufferT * > 		_ObjStackPool;
 			Uint32 								_AllCount;
 			
 			static _TyAlloc						gObjectAlloc;
@@ -135,13 +140,15 @@ namespace Plib
 			
 		protected:
 			// No copy
-			Pool< BasicCharBufferT, _TyAlloc >( const Pool< BasicCharBufferT, _TyAlloc > & rhs );
-			Pool< BasicCharBufferT, _TyAlloc > & operator = ( const Pool< BasicCharBufferT, _TyAlloc > & rhs );
+			Pool_< BasicCharBufferT, _TyAlloc >( 
+				const Pool_< BasicCharBufferT, _TyAlloc > & rhs );
+			Pool_< BasicCharBufferT, _TyAlloc > & operator = ( 
+				const Pool_< BasicCharBufferT, _TyAlloc > & rhs );
 		public:
 			
-			Pool< BasicCharBufferT, _TyAlloc >( )
+			Pool_< BasicCharBufferT, _TyAlloc >( )
 				: _AllCount( 0 ) { CONSTRUCTURE; }
-			~Pool< BasicCharBufferT, _TyAlloc >( )
+			~Pool_< BasicCharBufferT, _TyAlloc >( )
 			{
 				DESTRUCTURE;
 				while ( !_ObjStackPool.Empty( ) ) {
@@ -155,36 +162,36 @@ namespace Plib
 			}
 			// Get one object from the pool
 			// If the pool is empty, create a new object.
-			INLINE BasicCharBufferT & Get( ) {
+			INLINE PointT Get( ) {
 				PLIB_THREAD_SAFE;
 				if ( _ObjStackPool.Empty() ) {
 					BasicCharBufferT * _pObj = gObjectAlloc.Create( );
 					SELF_INCREASE( _AllCount );
 					_pObj->First = NULL;
 					_pObj->Second = 0;
-					return *_pObj;
+					return _pObj;
 				}
 				else {
 					BasicCharBufferT * _pObj = _ObjStackPool.Top( );
 					_ObjStackPool.Pop( );
-					return *_pObj;
+					return _pObj;
 				}
 			}
 			
 			// Return the object into the pool
 			// The internal stack object is thread-safe, 
 			// so we do not need to define PLIB_THREAD_SAFE again.
-			INLINE void Return( BasicCharBufferT & _Item ) {
+			INLINE void Return( PointT _Item ) {
 				PLIB_THREAD_SAFE;
 				if ( (_AllCount / 2) < _ObjStackPool.Size( ) ) {
-					if ( _Item.First != NULL ) {
-						PFREE(_Item.First);
+					if ( _Item->First != NULL ) {
+						PFREE(_Item->First);
 					}
 					_Item.Second = 0;
-					gObjectAlloc.Destroy( &_Item );
+					gObjectAlloc.Destroy( _Item );
 					SELF_DECREASE( _AllCount );
 				} else {
-					_ObjStackPool.Push( &_Item );
+					_ObjStackPool.Push( _Item );
 				}
 			}
 			
@@ -210,14 +217,16 @@ namespace Plib
 		};
 		// Static Allocator.
 		template < typename _TyAlloc >
-		_TyAlloc	Pool< BasicCharBufferT, _TyAlloc >::gObjectAlloc;
+		_TyAlloc	Pool_< BasicCharBufferT, _TyAlloc >::gObjectAlloc;
 		
 		// For Wide Char Type
 		template < typename _TyAlloc >
-		class Pool< WideCharBufferT, _TyAlloc >
+		class Pool_< WideCharBufferT, _TyAlloc >
 		{
+		public:
+			typedef WideCharBufferT *			PointT;
 		protected:
-			RStack< WideCharBufferT * > 		_ObjStackPool;
+			Stack< WideCharBufferT * > 			_ObjStackPool;
 			Uint32 								_AllCount;
 			
 			static _TyAlloc						gObjectAlloc;
@@ -225,13 +234,15 @@ namespace Plib
 			
 		protected:
 			// No copy
-			Pool< WideCharBufferT, _TyAlloc >( const Pool< WideCharBufferT, _TyAlloc > & rhs );
-			Pool< WideCharBufferT, _TyAlloc > & operator = ( const Pool< WideCharBufferT, _TyAlloc > & rhs );
+			Pool_< WideCharBufferT, _TyAlloc >( 
+				const Pool_< WideCharBufferT, _TyAlloc > & rhs );
+			Pool_< WideCharBufferT, _TyAlloc > & operator = ( 
+				const Pool_< WideCharBufferT, _TyAlloc > & rhs );
 		public:
 			
-			Pool< WideCharBufferT, _TyAlloc >( )
+			Pool_< WideCharBufferT, _TyAlloc >( )
 				: _AllCount( 0 ) { CONSTRUCTURE; }
-			~Pool< WideCharBufferT, _TyAlloc >( )
+			~Pool_< WideCharBufferT, _TyAlloc >( )
 			{
 				DESTRUCTURE;
 				while ( !_ObjStackPool.Empty( ) ) {
@@ -245,36 +256,36 @@ namespace Plib
 			}
 			// Get one object from the pool
 			// If the pool is empty, create a new object.
-			INLINE WideCharBufferT & Get( ) {
+			INLINE PointT Get( ) {
 				PLIB_THREAD_SAFE;
 				if ( _ObjStackPool.Empty() ) {
 					WideCharBufferT * _pObj = gObjectAlloc.Create( );
 					SELF_INCREASE( _AllCount );
 					_pObj->First = NULL;
 					_pObj->Second = 0;
-					return *_pObj;
+					return _pObj;
 				}
 				else {
 					WideCharBufferT * _pObj = _ObjStackPool.Top( );
 					_ObjStackPool.Pop( );
-					return *_pObj;
+					return _pObj;
 				}
 			}
 			
 			// Return the object into the pool
 			// The internal stack object is thread-safe, 
 			// so we do not need to define PLIB_THREAD_SAFE again.
-			INLINE void Return( WideCharBufferT & _Item ) {
+			INLINE void Return( PointT _Item ) {
 				PLIB_THREAD_SAFE;
 				if ( (_AllCount / 2) < _ObjStackPool.Size( ) ) {
-					if ( _Item.First != NULL ) {
-						PFREE( _Item.First );
+					if ( _Item->First != NULL ) {
+						PFREE( _Item->First );
 					}
 					_Item.Second = 0;
-					gObjectAlloc.Destroy( &_Item );
+					gObjectAlloc.Destroy( _Item );
 					SELF_DECREASE( _AllCount );
 				} else {
-					_ObjStackPool.Push( &_Item );
+					_ObjStackPool.Push( _Item );
 				}
 			}
 			
@@ -300,54 +311,66 @@ namespace Plib
 		};
 		// Static Allocator.
 		template < typename _TyAlloc >
-		_TyAlloc	Pool< WideCharBufferT, _TyAlloc >::gObjectAlloc;
+		_TyAlloc	Pool_< WideCharBufferT, _TyAlloc >::gObjectAlloc;
 		
 		
 		// Reference Version of Pool
-		template < typename _TyObject, typename _TyAlloc = Plib::Basic::Allocator< _TyObject > >
-		class RPool : public Plib::Generic::Reference< Pool< _TyObject, _TyAlloc > >
+		template < 
+			typename _TyObject, 
+			typename _TyAlloc = Plib::Basic::Allocator< _TyObject > 
+		>
+		class Pool 
+			: public Plib::Generic::Reference< Pool_< _TyObject, _TyAlloc > >
 		{
-			typedef Plib::Generic::Reference< Pool< _TyObject, _TyAlloc > >	TFather;
-			RPool<_TyObject, _TyAlloc>( bool _beNull ) : TFather( false ) 
+			typedef Plib::Generic::Reference< Pool_< _TyObject, _TyAlloc > >	TFather;
+			Pool<_TyObject, _TyAlloc>( bool _beNull ) : TFather( false ) 
 			{ CONSTRUCTURE; }
 		public:
-			RPool<_TyObject, _TyAlloc>( ) : TFather( true ) { CONSTRUCTURE; }
-			RPool<_TyObject, _TyAlloc>( const RPool<_TyObject, _TyAlloc> & rhs)
+			typedef _TyObject *		PointT;
+		public:
+			Pool<_TyObject, _TyAlloc>( ) : TFather( true ) { CONSTRUCTURE; }
+			Pool<_TyObject, _TyAlloc>( const Pool<_TyObject, _TyAlloc> & rhs)
 				: TFather( rhs ) { CONSTRUCTURE; }
-			~RPool< _TyObject, _TyAlloc > ( ) { DESTRUCTURE; }
+			~Pool< _TyObject, _TyAlloc > ( ) { DESTRUCTURE; }
 			
 			// Get one object from the pool
 			// If the pool is empty, create a new object.
-			INLINE _TyObject & Get( ) { return TFather::_Handle->_PHandle->Get( ); }
+			INLINE PointT Get( ) { 
+				return TFather::_Handle->_PHandle->Get( ); }
 			
 			// Return the object into the pool
 			// The internal stack object is thread-safe, 
 			// so we do not need to define PLIB_THREAD_SAFE again.
-			INLINE void Return( _TyObject & _Item ) { TFather::_Handle->_PHandle->Return( _Item ); }
+			INLINE void Return( PointT _Item ) { 
+				TFather::_Handle->_PHandle->Return( _Item ); }
 			
 			// Return the number of object-in-the-pool right now.
-			INLINE Uint32 LeftCount( ) const { return TFather::_Handle->_PHandle->LeftCount(); }
+			INLINE Uint32 LeftCount( ) const { 
+				return TFather::_Handle->_PHandle->LeftCount(); }
 			
 			// Return the count of objects are in using.
-			INLINE Uint32 UsingCount( ) const { return TFather::_Handle->_PHandle->UsingCount( ); }
+			INLINE Uint32 UsingCount( ) const { 
+				return TFather::_Handle->_PHandle->UsingCount( ); }
 			
 			// Return all count of objects have been created.
-			INLINE Uint32 AllCount( ) const { return TFather::_Handle->_PHandle->AllCount( ); }
+			INLINE Uint32 AllCount( ) const { 
+				return TFather::_Handle->_PHandle->AllCount( ); }
 			
 			// The same to AllCount()
-			INLINE Uint32 Size( ) const { return TFather::_Handle->_PHandle->Size( ); }
+			INLINE Uint32 Size( ) const { 
+				return TFather::_Handle->_PHandle->Size( ); }
 			
 			// Null Object.
-			const static RPool<_TyObject, _TyAlloc> Null;
-			RPool<_TyObject, _TyAlloc> CreateNullPool( ) {
-				return RPool<_TyObject, _TyAlloc>( false );
+			const static Pool<_TyObject, _TyAlloc> Null;
+			Pool<_TyObject, _TyAlloc> CreateNullPool( ) {
+				return Pool<_TyObject, _TyAlloc>( false );
 			}
 		};
 		
-		// Null RPool
+		// Null Pool
 		template < typename _TyObject, typename _TyAlloc >
-			const RPool<_TyObject, _TyAlloc> 
-				RPool<_TyObject, _TyAlloc>::Null( false );
+			const Pool<_TyObject, _TyAlloc> 
+				Pool<_TyObject, _TyAlloc>::Null( false );
 	}
 }
 

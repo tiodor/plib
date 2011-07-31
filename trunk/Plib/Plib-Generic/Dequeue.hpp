@@ -33,7 +33,7 @@ namespace Plib
 		template< 
 			typename _TyObject, 
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
-		> class RDequeue;
+		> class Dequeue;
 		
 		/*
 		 * This is a dequeue container based on Array Organizer like array list.
@@ -46,7 +46,7 @@ namespace Plib
 			typename _TyObject, 
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
 		>
-		class Dequeue : public ArrayOrganizer< _TyObject, _TyAlloc >
+		class Dequeue_ : public ArrayOrganizer< _TyObject, _TyAlloc >
 		{
 		public:
 			// The father alias.
@@ -54,11 +54,11 @@ namespace Plib
 
 			// Default C'Str.
 			// Create an empty dequeue.
-			Dequeue< _TyObject, _TyAlloc >( ) : TFather( ) { CONSTRUCTURE; }
+			Dequeue_< _TyObject, _TyAlloc >( ) : TFather( ) { CONSTRUCTURE; }
 			
 			// Copy C'str
-			Dequeue< _TyObject, _TyAlloc >( 
-				const Dequeue< _TyObject, _TyAlloc > & rhs )
+			Dequeue_< _TyObject, _TyAlloc >( 
+				const Dequeue_< _TyObject, _TyAlloc > & rhs )
 				: TFather( ) 
 			{
 				CONSTRUCTURE;
@@ -66,7 +66,7 @@ namespace Plib
 				for ( Uint32 i = 0; i < rhs.Size(); ++i )
 					TFather::__AppendLast( rhs.__Get(i) ); 
 			}
-			~Dequeue< _TyObject, _TyAlloc > ( ) { DESTRUCTURE; }
+			~Dequeue_< _TyObject, _TyAlloc > ( ) { DESTRUCTURE; }
 				
 			// Push a new object to the end of the list.
 			INLINE void PushBack( const _TyObject & _vobj ) { TFather::__AppendLast( _vobj ); }
@@ -103,27 +103,27 @@ namespace Plib
 			typename _TyObject, 
 			typename _TyAlloc
 		>
-		class RDequeue : public Reference< Dequeue< _TyObject, _TyAlloc > >
+		class Dequeue : public Reference< Dequeue_< _TyObject, _TyAlloc > >
 		{
 		public:
-			typedef Reference< Dequeue< _TyObject, _TyAlloc > >	TFather;
+			typedef Reference< Dequeue_< _TyObject, _TyAlloc > >	TFather;
 			
 		protected:
 			// For Null Array
-			RDequeue< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
+			Dequeue< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
 			{ CONSTRUCTURE; }
 			
 		public:
 			// Default C'Str.
 			// Create an empty array list.
-			RDequeue< _TyObject, _TyAlloc >( ) : TFather( true ) { CONSTRUCTURE; }
-			RDequeue< _TyObject, _TyAlloc >( const RDequeue< _TyObject, _TyAlloc > & rhs )
+			Dequeue< _TyObject, _TyAlloc >( ) : TFather( true ) { CONSTRUCTURE; }
+			Dequeue< _TyObject, _TyAlloc >( const Dequeue< _TyObject, _TyAlloc > & rhs )
 				: TFather( rhs ) { CONSTRUCTURE; }
-			~RDequeue< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
+			~Dequeue< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
 			
 			// Copy C'str
-			RDequeue< _TyObject, _TyAlloc >( 
-				const Dequeue< _TyObject, _TyAlloc > & rhs )
+			Dequeue< _TyObject, _TyAlloc >( 
+				const Dequeue_< _TyObject, _TyAlloc > & rhs )
 				: TFather( rhs ) { }
 
 			// Push a new object to the end of the list.
@@ -156,17 +156,17 @@ namespace Plib
 			// The only way is to start a two-layer-loop to release all object.
 			INLINE void Clear( ) { TFather::_Handle->_PHandle->Clear(); }
 			
-			const static RDequeue< _TyObject, _TyAlloc > Null;
+			const static Dequeue< _TyObject, _TyAlloc > Null;
 			
-			static RDequeue< _TyObject, _TyAlloc > CreateNullDequeue( )
+			static Dequeue< _TyObject, _TyAlloc > CreateNullDequeue( )
 			{
-				return RDequeue< _TyObject, _TyAlloc >( false );
+				return Dequeue< _TyObject, _TyAlloc >( false );
 			}			
 		};
 		
 		template< typename _TyObject, typename _TyAlloc >
-			const RDequeue< _TyObject, _TyAlloc > 
-				RDequeue< _TyObject, _TyAlloc >::Null( false );
+			const Dequeue< _TyObject, _TyAlloc > 
+				Dequeue< _TyObject, _TyAlloc >::Null( false );
 	}
 }
 
