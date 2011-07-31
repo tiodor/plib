@@ -32,7 +32,7 @@ namespace Plib
 		template< 
 			typename _TyObject,
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
-		> class RStack;
+		> class Stack;
 			
 		/*
 		 * This is a stack container based on Array Organizer like array list.
@@ -43,7 +43,7 @@ namespace Plib
 			typename _TyObject, 
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
 		>
-		class Stack : public ArrayOrganizer< _TyObject, _TyAlloc >
+		class Stack_ : public ArrayOrganizer< _TyObject, _TyAlloc >
 		{
 		public:
 			// The father alias.
@@ -51,11 +51,11 @@ namespace Plib
 
 			// Default C'Str.
 			// Create an empty dequeue.
-			Stack< _TyObject, _TyAlloc >( ) : TFather( ) { CONSTRUCTURE; }
+			Stack_< _TyObject, _TyAlloc >( ) : TFather( ) { CONSTRUCTURE; }
 			
 			// Copy C'str
-			Stack< _TyObject, _TyAlloc >( 
-				const Stack< _TyObject, _TyAlloc > & rhs )
+			Stack_< _TyObject, _TyAlloc >( 
+				const Stack_< _TyObject, _TyAlloc > & rhs )
 				: TFather( ) 
 			{
 				CONSTRUCTURE;
@@ -63,7 +63,7 @@ namespace Plib
 				for ( Uint32 i = 0; i < rhs.Size(); ++i )
 					TFather::__AppendLast( rhs.__Get(i) ); 
 			}
-			~Stack< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
+			~Stack_< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
 				
 			// Push a new object to the end of the list.
 			INLINE void Push( const _TyObject & _vobj ) { TFather::__AppendHead( _vobj ); }
@@ -91,30 +91,30 @@ namespace Plib
 			typename _TyObject, 
 			typename _TyAlloc
 		>
-		class RStack : public Reference< Stack< _TyObject, _TyAlloc > >
+		class Stack : public Reference< Stack_< _TyObject, _TyAlloc > >
 		{
 		public:
-			typedef Reference< Stack< _TyObject, _TyAlloc > >	TFather;
+			typedef Reference< Stack_< _TyObject, _TyAlloc > >	TFather;
 			
 		protected:
 			// For Null Array
-			RStack< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
+			Stack< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
 			{ CONSTRUCTURE; }
 			
 		public:
 			// Default C'Str.
 			// Create an empty queue
-			RStack< _TyObject, _TyAlloc >( )
+			Stack< _TyObject, _TyAlloc >( )
 				: TFather( true ) { CONSTRUCTURE; }
 			
-			RStack< _TyObject, _TyAlloc >( const RStack< _TyObject, _TyAlloc > & rhs )
+			Stack< _TyObject, _TyAlloc >( const Stack< _TyObject, _TyAlloc > & rhs )
 				: TFather( rhs ) { CONSTRUCTURE; }
 			// Copy C'str
-			RStack< _TyObject, _TyAlloc >( 
-				const Stack< _TyObject, _TyAlloc > & rhs )
+			Stack< _TyObject, _TyAlloc >( 
+				const Stack_< _TyObject, _TyAlloc > & rhs )
 				: TFather( rhs ) { CONSTRUCTURE; }
 
-			~RStack< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
+			~Stack< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
 
 			// Push a new object to the end of the list.
 			INLINE void Push( const _TyObject & _vobj ) { 
@@ -136,17 +136,17 @@ namespace Plib
 			// The only way is to start a two-layer-loop to release all object.
 			INLINE void Clear( ) { TFather::_Handle->_PHandle->Clear(); }
 			
-			const static RStack< _TyObject, _TyAlloc > Null;
+			const static Stack< _TyObject, _TyAlloc > Null;
 			
-			static RStack< _TyObject, _TyAlloc > CreateNullStack( )
+			static Stack< _TyObject, _TyAlloc > CreateNullStack( )
 			{
-				return RStack< _TyObject, _TyAlloc >( false );
+				return Stack< _TyObject, _TyAlloc >( false );
 			}			
 		};
 		
 		template< typename _TyObject, typename _TyAlloc >
-			const RStack< _TyObject, _TyAlloc > 
-				RStack< _TyObject, _TyAlloc >::Null( false );
+			const Stack< _TyObject, _TyAlloc > 
+				Stack< _TyObject, _TyAlloc >::Null( false );
 	}
 }
 

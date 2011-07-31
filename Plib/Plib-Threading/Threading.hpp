@@ -37,27 +37,26 @@ namespace Plib
 	namespace Threading
 	{
 #if _DEF_WIN32
+		INLINE void SetSignalHandle( ) {
+		}
 		INLINE void WaitForExitSignal( )
 		{
 			char _c = getc( );
 		}
 #else
 		// Global Signal
-		template < Uint32 _Dummy = 0 >
 		struct __GlobalSignal {
-			static Semaphore	__WaitFor;
+			static Semaphore & __WaitFor( ) {
+				static Semaphore _sem(0, 1);
+				return _sem;
+			}
 		};
-		
-		template < Uint32 _Dummy >
-		Semaphore	__GlobalSignal< _Dummy >::__WaitFor(0, 1);
 		
 		INLINE void __HandleSignal( int _Sig ) {
 			if (SIGTERM == _Sig || SIGINT == _Sig || SIGQUIT == _Sig) 
-				__GlobalSignal< 0 >::__WaitFor.Release();			
+				__GlobalSignal::__WaitFor().Release();			
 		}
-		
-		INLINE void WaitForExitSignal( )
-		{
+		INLINE void SetSignalHandle( ) {
 			// Hook the signal
 			sigset_t sgset, osgset;
 			sigfillset(&sgset);
@@ -68,10 +67,12 @@ namespace Plib
 			sigprocmask(SIG_SETMASK, &sgset, &osgset);
 			signal(SIGTERM, __HandleSignal);
 			signal(SIGINT, __HandleSignal);
-			signal(SIGQUIT, __HandleSignal);
-			
+			signal(SIGQUIT, __HandleSignal);			
+		}
+		INLINE void WaitForExitSignal( )
+		{
 			// Wait for exit signal
-			__GlobalSignal< 0 >::__WaitFor.Get( );		
+			__GlobalSignal::__WaitFor().Get( );		
 		}
 #endif
 	}

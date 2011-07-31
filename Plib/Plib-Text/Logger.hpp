@@ -117,6 +117,7 @@ namespace Plib
 						if ( __Locked ) return;
 					}
 					__Locker.Lock( );
+					__Locked = true;
 					__Buffer += "[";
 					__Buffer += GetCurrentTime();
 					__Buffer += "][";
@@ -131,6 +132,7 @@ namespace Plib
 						PLIB_THREAD_SAFE;
 						if ( !__Locked ) return;
 					}
+					__Locked = false;
 					__Locker.UnLock( );
 				}
 			public:
@@ -140,6 +142,7 @@ namespace Plib
 					if ( !__Logger->__LevelApprove( __Level ) ) return *this;
 					__CheckAndLock( );
 					__Buffer += Convert::ToString( _data );
+					return *this;
 				}
 
 				__LoggerWriter & operator << ( const __Log_End_of_Line & _eof ) {
@@ -151,6 +154,7 @@ namespace Plib
 
 					// Un lock.
 					__CheckAndUnLock( );
+					return *this;
 				}
 			};
 
@@ -256,7 +260,10 @@ namespace Plib
 			{
 				// Switch the buffer.
 				__LogLocker.Lock( );
-				if ( __Buffer.Size() == 0 ) return;
+				if ( __Buffer.Size() == 0 ) {
+					__LogLocker.UnLock( );
+					return;
+				}
 				RString __Temp = __Buffer;
 				__Buffer = __FlushString;
 				__FlushString = __Temp;
@@ -309,11 +316,14 @@ namespace Plib
 				Fatal_.__Init( this, LLV_FATAL );
 				
 				__FlushTimer += std::make_pair( this, &Logger_<_dummy>::__FlushLogData );
-				__FlushTimer.SetEnable( true );
+				//__FlushTimer.SetEnable( true );
 			}
 			
 			~Logger_<_dummy>( ) { __FlushLogData( ); }
 			
+			INLINE void SetFlushTimer( bool _enable ) {
+				__FlushTimer.SetEnable( _enable );
+			}
 			// Common configure.
 			INLINE void SetFlushInterval( Uint32 _milliseconds ) {
 				__FlushTimer.SetInterval( _milliseconds );

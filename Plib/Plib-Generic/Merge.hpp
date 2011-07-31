@@ -18,11 +18,11 @@
 
 #if _DEF_IOS
 #include "ArrayList.hpp"
-#include "SortedList.hpp"
+#include "Order.hpp"
 #include "Pair.hpp"
 #else
 #include <Plib-Generic/ArrayList.hpp>
-#include <Plib-Generic/SortedList.hpp>
+#include <Plib-Generic/Order.hpp>
 #include <Plib-Generic/Pair.hpp>
 #endif
 
@@ -35,8 +35,8 @@ namespace Plib
 		public:
 			// Typedef
 			typedef Pair< _TyIter, _TyIter > 			ATOMNODE_T;
-			typedef ArrayList< _TyIter >				RESULT_T;
-			typedef SortedList< ATOMNODE_T, _Compare >	SORTLIST_T;
+			typedef Array< _TyIter >					RESULT_T;
+			typedef Order< ATOMNODE_T, _Compare >		SORTLIST_T;
 		protected:
 			RESULT_T									m_ResultArray;
 			SORTLIST_T									m_SortArray;

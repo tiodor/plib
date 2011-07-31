@@ -27,7 +27,7 @@
 #include "Delegate.hpp"
 #include "Pool.hpp"
 #include "ArrayList.hpp"
-#include "SortedList.hpp"
+#include "Order.hpp"
 #include "Merge.hpp"
 #include "Operator.hpp"
 #else
@@ -41,7 +41,7 @@
 #include <Plib-Generic/Delegate.hpp>
 #include <Plib-Generic/Pool.hpp>
 #include <Plib-Generic/ArrayList.hpp>
-#include <Plib-Generic/SortedList.hpp>
+#include <Plib-Generic/Order.hpp>
 #include <Plib-Generic/Merge.hpp>
 #include <Plib-Generic/Operator.hpp>
 #endif

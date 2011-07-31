@@ -54,7 +54,7 @@ namespace Plib
 			bool 													_bUnCompleteLine;
 			
 		protected:
-			bool __ParseIncomingString( RString _lineString ) {
+			bool __ParseIncomingString( RString & _lineString ) {
 				// For each line
 				// is comment
 				_lineString.Trim( );		// Trim to be processed.
@@ -69,7 +69,14 @@ namespace Plib
 						SELF_DECREASE( _bArrayContinue );
 						if ( _bArrayContinue == 0 ) {
 							_lineString.Remove( _lineString.Size() - 1 );
+							if ( _lineString.Empty( ) ) return true;
 						}
+					}
+					if ( m_Params[CFG_MVSPILT].Find(
+						_lineString[_lineString.size() - 1])
+						== RString::NoPos )
+					{
+						_lineString += m_Params[CFG_MVSPILT][0];
 					}
 					m_KeyValuePair[ _LastKey ] += _lineString;
 					return true;
@@ -147,7 +154,7 @@ namespace Plib
 			}
 			
 			// Parse the input array to be a config object.
-			bool Parse( const Plib::Generic::RArray< RString > & _LineArray )
+			bool Parse( Plib::Generic::RArray< RString > & _LineArray )
 			{
 				Clear(); 
 				for ( Uint32 i = 0; i < _LineArray.Size(); ++i )
@@ -159,7 +166,7 @@ namespace Plib
 			}
 			
 			// Parse the incoming string.
-			bool Parse( const RString & _stringConfig )
+			bool Parse( RString & _stringConfig )
 			{
 				Plib::Generic::RArray< RString > _LineArray = 
 					_stringConfig.Split("\r\n" + m_Params[CFG_MVSPILT]);
@@ -181,7 +188,7 @@ namespace Plib
 				}
 				
 				// Check if the configure file is well formated.
-				if ( _bArrayContinue == true ) return false;
+				if ( _bArrayContinue > 0 ) return false;
 				return true;
 			}
 			
@@ -249,11 +256,11 @@ namespace Plib
 				TFather::_Handle->_PHandle->Set( _param, _data );
 			}
 			// Parse the input array to be a config object.
-			INLINE bool Parse( const Plib::Generic::RArray< RString > & _LineArray ) {
+			INLINE bool Parse( Plib::Generic::RArray< RString > & _LineArray ) {
 				return TFather::_Handle->_PHandle->Parse( _LineArray );
 			}
 			// Parse the incoming string.
-			INLINE bool Parse( const RString & _stringConfig ) {
+			INLINE bool Parse( RString & _stringConfig ) {
 				return TFather::_Handle->_PHandle->Parse( _stringConfig );
 			}
 			// Open the file and parse it.
@@ -286,12 +293,16 @@ namespace Plib
 			// Get another config
 			Config_r<_dummy> GetConfig( const char * _key ) {
 				Config_r<_dummy> _2ndConfig;
-				_2ndConfig.Parse( TFather::_Handle->_PHandle->GetArray(_key) );
+				Plib::Generic::RArray< RString > _array = 
+					TFather::_Handle->_PHandle->GetArray(_key);
+				_2ndConfig.Parse( _array );
 				return _2ndConfig;
 			}
 			Config_r<_dummy> GetConfig( const RString & _key ) {
 				Config_r<_dummy> _2ndConfig;
-				_2ndConfig.Parse( TFather::_Handle->_PHandle->GetArray(_key) );
+				Plib::Generic::RArray< RString > _array = 
+					TFather::_Handle->_PHandle->GetArray(_key);
+				_2ndConfig.Parse( _array );
 				return _2ndConfig;
 			}
 			

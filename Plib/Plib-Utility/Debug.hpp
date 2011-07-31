@@ -107,16 +107,17 @@
 #define PELSE				else
 
 #elif defined _PLIB_LOG_DEBUG_
-#define PTRACE( _Words )	Plib::Text::Logger::GLog.LTrace << _Words << Plib::Text::Logger::Endl;
-#define PDEBUG( _Words )	Plib::Text::Logger::GLog.LDebug << _Words << Plib::Text::Logger::Endl;
-#define PNOTIFY( _Words )	Plib::Text::Logger::GLog.LNotify << _Words << Plib::Text::Logger::Endl;
-#define PINFO( _Words )		Plib::Text::Logger::GLog.LInfo << _Words << Plib::Text::Logger::Endl;
-#define PWARN( _Words )		Plib::Text::Logger::GLog.LWarn << _Words << Plib::Text::Logger::Endl;
-#define PERROR( _Words )	Plib::Text::Logger::GLog.LError << _Words << Plib::Text::Logger::Endl;
-#define PFATAL( _Words )	Plib::Text::Logger::GLog.LFatal << _Words << Plib::Text::Logger::Endl;
-#define PDUMP( _Dump )
-#define PIF( _Exp )
-#define PELSEIF( _Exp )
+#define PTRACE( _Words )	Plib::Text::Logger::GLog.LTrace << _Words << Plib::Text::Logger::Endl
+#define PDEBUG( _Words )	Plib::Text::Logger::GLog.LDebug << _Words << Plib::Text::Logger::Endl
+#define PNOTIFY( _Words )	Plib::Text::Logger::GLog.LNotify << _Words << Plib::Text::Logger::Endl
+#define PINFO( _Words )		Plib::Text::Logger::GLog.LInfo << _Words << Plib::Text::Logger::Endl
+#define PWARN( _Words )		Plib::Text::Logger::GLog.LWarn << _Words << Plib::Text::Logger::Endl
+#define PERROR( _Words )	Plib::Text::Logger::GLog.LError << _Words << Plib::Text::Logger::Endl
+#define PFATAL( _Words )	Plib::Text::Logger::GLog.LFatal << _Words << Plib::Text::Logger::Endl
+#define PDUMP( _Dump )		Plib::Text::Logger::GLog.LTrace << "{" #_Dump "}" << \
+								Plib::Utility::Convert::ToString(_Dump) << Plib::Text::Logger::Endl
+#define PIF( _Exp )			if ( _Exp )
+#define PELSEIF( _Exp )		else if ( _Exp )
 #define PELSE				else
 
 #else

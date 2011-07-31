@@ -60,7 +60,7 @@ namespace Plib
 		
 		#endif
 		
-		#define PLIB_THREAD_MIN_STACKSIZE	0x4000			// 16KB
+		#define PLIB_THREAD_MIN_STACKSIZE	0x40000			// 256KB
 
 		#if _DEF_WIN32
 		typedef long		THANDLE;
@@ -96,37 +96,21 @@ namespace Plib
 			_TObj._ThreadStatue = false;
 			_TObj._StackSize = 0;
 		}
-
-		// Global Map & Locker
-		/*
-		typedef TStaticDef<
-			THREAD_OBJECT,
-			RWLock, 
-			0 > ThreadGlobalLockT;
-		#define ThreadGlobalLock ThreadGlobalLockT::TSREF
-		typedef TStaticDef< 
-			THREAD_OBJECT, 
-			std::map< TID_T, LPTHREAD_OBJECT >, 
-			0 >	ThreadGlobalMapT;
-		#define ThreadGlobalMap ThreadGlobalMapT::TSREF
-		*/
-		static RWLock	ThreadGlobalLock;
-		static std::map< TID_T, LPTHREAD_OBJECT > ThreadGlobalMap;
 		
 		// Thread Global Info
 		template < Uint32 _dummy > class __ThreadInfo 
 		{
-			static Uint32		__stackSize;
+			static Uint32 & __stackSize( ) {
+				static Uint32 _size = PLIB_THREAD_MIN_STACKSIZE;
+				return _size;
+			}
 		public:
-			static Uint32 GetStackSize( ) { return __stackSize; }
+			static Uint32 GetStackSize( ) { return __stackSize(); }
 			static void SetStackSize( Uint32 _size ) {
 				if ( _size <= PLIB_THREAD_MIN_STACKSIZE ) return;
-				__stackSize = _size;
+				__stackSize() = _size;
 			}
 		};
-		// Static
-		template < Uint32 _dummy > 
-			Uint32 __ThreadInfo< _dummy >::__stackSize = PLIB_THREAD_STACK_SIZE;
 		// Thread Info
 		typedef __ThreadInfo< 0 >			ThreadInfo;
 		
@@ -135,6 +119,15 @@ namespace Plib
 
 		struct ThreadKernel
 		{
+			// Global Map & Locker
+			static RWLock & ThreadGlobalLock() {
+				static RWLock _lock;
+				return _lock;
+			}
+			static std::map< TID_T, LPTHREAD_OBJECT > & ThreadGlobalMap() {
+				static std::map< TID_T, LPTHREAD_OBJECT > _map;
+				return _map;
+			}
 			// Try to start the thread call back function.
 			// In different operation system, this function active differently.
 			// The return value of this function shows if 
@@ -142,7 +135,7 @@ namespace Plib
 			static INLINE bool BeginThread( void * _Thread, LPTHREAD_OBJECT _ThreadObj, 
 				CreateTRetVal_T (_THREAD_CALLBACK * _CallBack)(void *) )
 			{
-				WriteLocker tgLock( ThreadGlobalLock );
+				WriteLocker tgLock( ThreadGlobalLock() );
 				Uint32 _ss = _ThreadObj->_StackSize == 0 ? 
 					ThreadInfo::GetStackSize() : _ThreadObj->_StackSize;
 		#if _DEF_WIN32
@@ -161,7 +154,7 @@ namespace Plib
 				pthread_attr_destroy(&_tAttr);
 				if ( _ThreadObj->_ThreadHandle != 0 ) return false;
 		#endif
-				ThreadGlobalMap[_ThreadObj->_ThreadID] = _ThreadObj;
+				ThreadGlobalMap()[_ThreadObj->_ThreadID] = _ThreadObj;
 				return true;
 			}
 
@@ -176,11 +169,11 @@ namespace Plib
 				::CloseHandle((HANDLE)_ThreadObj->_ThreadHandle);
 				_ThreadObj->_ThreadHandle = 0;
 		#endif
-				WriteLocker _locker( ThreadGlobalLock );
+				WriteLocker _locker( ThreadGlobalLock() );
 				std::map< TID_T, LPTHREAD_OBJECT >::iterator _Tit = 
-					ThreadGlobalMap.find( _ThreadObj->_ThreadID );
-				if ( _Tit != ThreadGlobalMap.end() )
-					ThreadGlobalMap.erase( _Tit );
+					ThreadKernel::ThreadGlobalMap().find( _ThreadObj->_ThreadID );
+				if ( _Tit != ThreadKernel::ThreadGlobalMap().end() )
+					ThreadKernel::ThreadGlobalMap().erase( _Tit );
 		#if !_DEF_WIN32
 				// Detach current thread's resource.
 				pthread_detach( _ThreadObj->_ThreadID );
@@ -203,10 +196,11 @@ namespace Plib
 			static INLINE bool Running( )
 			{
 				TID_T _Id = SelfID();
-				ReadLocker _GLocker( ThreadGlobalLock );
-				if ( ThreadGlobalMap.find( _Id ) == ThreadGlobalMap.end() )
+				ReadLocker _GLocker( ThreadKernel::ThreadGlobalLock() );
+				if ( ThreadKernel::ThreadGlobalMap().find( _Id ) == 
+					ThreadKernel::ThreadGlobalMap().end() )
 					return false;
-				LPTHREAD_OBJECT _ThreadObj = ThreadGlobalMap[_Id];
+				LPTHREAD_OBJECT _ThreadObj = ThreadKernel::ThreadGlobalMap()[_Id];
 				ReadLocker _TLocker( _ThreadObj->_Locker );
 				return _ThreadObj->_ThreadStatue;
 			}
@@ -236,11 +230,14 @@ namespace Plib
 				// When any thread invoke this method, is about to block
 				// the ThreadGlobalLock, then no other thread can be started or ended.
 				//ReadLocker _GLocker( ThreadGlobalLock );
-				ThreadGlobalLock.ReadLock( );
-				if ( ThreadGlobalMap.find( _Id ) == ThreadGlobalMap.end() )
+				ThreadKernel::ThreadGlobalLock().ReadLock( );
+				if ( ThreadKernel::ThreadGlobalMap().find( _Id ) == 
+					ThreadKernel::ThreadGlobalMap().end() ) {
+					ThreadKernel::ThreadGlobalLock().UnLock( );
 					return false;
-				LPTHREAD_OBJECT _ThreadObj = ThreadGlobalMap[_Id];
-				ThreadGlobalLock.UnLock( );
+				}
+				LPTHREAD_OBJECT _ThreadObj = ThreadKernel::ThreadGlobalMap()[_Id];
+				ThreadKernel::ThreadGlobalLock().UnLock( );
 				return _ThreadObj->_SignalSem.Get( _Milliseconds );
 			}
 		};

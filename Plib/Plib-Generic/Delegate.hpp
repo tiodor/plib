@@ -125,7 +125,7 @@ namespace Plib
 		template < typename _TyRet, DEF_PARAM( n ) >									\
 		class Delegate< _TyRet ( DEF_TYPE( n ) ) > {									\
 		protected:																		\
-			RArray< DelegateInvokeBase< _TyRet( DEF_TYPE( n ) ) > * > m_FooList;		\
+			Array< DelegateInvokeBase< _TyRet( DEF_TYPE( n ) ) > * > m_FooList;			\
 		public:																			\
 			DEF_ARGTYPE( n );															\
 			typedef argument_type0 argument_type;										\
@@ -288,7 +288,7 @@ namespace Plib
 		};
 		template < typename _TyRet > class Delegate<_TyRet()> {
 		protected:
-			RArray< DelegateInvokeBase< _TyRet( ) > * > m_FooList;
+			Array< DelegateInvokeBase< _TyRet( ) > * > m_FooList;
 		public:
 			typedef void argument_type;
 			typedef void first_argument_type;

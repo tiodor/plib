@@ -217,6 +217,10 @@ namespace Plib
 			INLINE RpConnect & GetConnect() {
 				return m_rpConnect;
 			}
+			// Check the connection statue
+			INLINE bool IsConnect( ) const {
+				return m_rpConnect.RefNull( ) ? false : m_rpConnect->IsConnect( );
+			}
 			// For debug usage.
 			// Get the request stream.
 			INLINE const Plib::Text::RString & GetRequestString( )
@@ -330,11 +334,7 @@ namespace Plib
 				if ( !m_rpParser.RefNull() ) m_rpParser->Clear();
 				m_requestStream.Clear();
 				if ( m_rpConnect.RefNull() ) return;
-				if ( !m_createByService )
-					m_rpConnect->Close();
-				else {
-					m_rpConnect = RpConnect::NullRefObj;
-				}
+				m_rpConnect->Close( );
 			}
 			
 			// Clear the request object and release the data.
@@ -367,6 +367,7 @@ namespace Plib
 			typedef Plib::Generic::Reference< _TyConnect >							RpConnect;
 			typedef Plib::Generic::Reference< _Request< _TyParser, _TyConnect > >	TFather;
 			typedef Response< _TyParser, _TyConnect >								RResponse;
+			typedef Response< _TyParser, _TyConnect >								TResponse;
 		protected:
 			Request< _TyParser, _TyConnect >( bool beNull ):TFather( false ) { CONSTRUCTURE; }
 		public:
@@ -401,6 +402,9 @@ namespace Plib
 			
 			INLINE Plib::Generic::Reference< _TyConnect > & GetConnect( ) {
 				return TFather::_Handle->_PHandle->GetConnect();
+			}
+			INLINE bool IsConnect( ) const {
+				return TFather::_Handle->_PHandle->IsConnect( );
 			}
 			// For debug usage.
 			// Get the request stream.

@@ -2,7 +2,7 @@
 * Copyright (c) 2010, Push Chen
 * All rights reserved.
 * 
-* File Name			: SortedList.hpp
+* File Name			: Order.hpp
 * Propose  			: An sorted list based on Array Organized.
 * 
 * Current Version	: 1.0.0
@@ -41,7 +41,7 @@ namespace Plib
 			typename _TyComp = Less<_TyObject >,
 			typename _TyAlloc = Plib::Basic::Allocator< _TyObject >
 		>
-		class SortedList : public ArrayOrganizer< _TyObject, _TyAlloc >
+		class Order_ : public ArrayOrganizer< _TyObject, _TyAlloc >
 		{
 		protected:
 			typedef ArrayOrganizer< _TyObject, _TyAlloc >	TFather;
@@ -58,7 +58,8 @@ namespace Plib
 				bool _checkFirst = m_Comp( *(_ps->operator[] (0)), _vobj );
 				bool _checkLast = m_Comp( *(_ps->operator[] (_ps->Count() - 1)), _vobj );
 				
-				return ( _checkFirst && _checkLast ) ? 1 : (_checkFirst || _checkLast) ? 0 : -1;
+				return ( _checkFirst && _checkLast ) ? 1 
+					: (_checkFirst || _checkLast) ? 0 : -1;
 			}
 
 			INLINE Uint32 __Binary( 
@@ -68,7 +69,9 @@ namespace Plib
 			{
 				if ( _begin >= _end ) return _begin;
 				Uint32 _half = ( _begin + _end ) / 2;
-				if ( _half == _begin ) return ( m_Comp( *storage[_begin], _vobj ) ? _begin + 1 : _begin );
+				if ( _half == _begin ) return ( 
+					m_Comp( *storage[_begin], _vobj ) ? _begin + 1 : _begin 
+				);
 				
 				if ( m_Comp(*storage[_half], _vobj) ) {
 					return __Binary( _vobj, storage, _half, _end );
@@ -84,7 +87,11 @@ namespace Plib
 				return _beforeCount + __Binary( _vobj, *pStorage, 0, pStorage->Count() );
 			}
 			
-			INLINE Uint32 __BinarySearch( const _TyObject & _vobj, Uint32 _begin, Uint32 _end ) {
+			INLINE Uint32 __BinarySearch( 
+				const _TyObject & _vobj, 
+				Uint32 _begin, 
+				Uint32 _end 
+			) {
 				Uint32 _halfStorage = (_begin + _end) / 2;
 				if ( _halfStorage == _begin ) return __BinaryFind( _vobj, _begin );
 				//if ( _halfStorage == _end ) return __BinaryFind( _vobj, _end );
@@ -100,17 +107,17 @@ namespace Plib
 		public:
 			// Default C'Str.
 			// Create an empty array list.
-			SortedList< _TyObject, _TyComp, _TyAlloc >( )
+			Order_< _TyObject, _TyComp, _TyAlloc >( )
 				: TFather( ) { }
 			
 			// Copy C'str
-			SortedList< _TyObject, _TyComp, _TyAlloc >( 
-				const SortedList< _TyObject, _TyComp, _TyAlloc > & rhs )
+			Order_< _TyObject, _TyComp, _TyAlloc >( 
+				const Order_< _TyObject, _TyComp, _TyAlloc > & rhs )
 				: TFather( ) { this->SortInsert( rhs ); }
 			
 			// C'Str with array
 			template < typename _TyIterator >
-			SortedList< _TyObject,  _TyComp, _TyAlloc >( 
+			Order_< _TyObject,  _TyComp, _TyAlloc >( 
 				_TyIterator _begin, _TyIterator _end )
 				: TFather( ) { this->SortInsert( _begin, _end ); }
 			
@@ -136,6 +143,7 @@ namespace Plib
 				return (Uint32)-1;
 			}
 			
+			// Sort and insert the new object to the list.
 			INLINE void SortInsert( const _TyObject & _vobj ) {
 				PLIB_THREAD_SAFE;
 				Uint32 _start = TFather::__IsHeadEqualHeadFree() ? 0 : 1;
@@ -147,7 +155,7 @@ namespace Plib
 				TFather::__Insert( _vobj, _pos );
 			}
 			
-			INLINE void SortInsert( const SortedList< _TyObject, _TyComp, _TyAlloc > & rhs ) {
+			INLINE void SortInsert( const Order_< _TyObject, _TyComp, _TyAlloc > & rhs ) {
 				for ( Uint32 i = 0; i < rhs.Size(); ++i ) {
 					this->SortInsert( rhs[i] );
 				}
@@ -158,8 +166,13 @@ namespace Plib
 				for ( ; _begin != _end; ++_begin ) this->Sortisert( *_begin );
 			}
 			
+			// Non-const version. return the copy of the object.
+			INLINE _TyObject operator [] ( Uint32 _idx ) {
+				return TFather::__Get( _idx );
+			}
 			// Const version of operator [], get the specified item.
-			INLINE const _TyObject & operator [] ( Uint32 _idx ) const { return TFather::__Get( _idx ); }
+			INLINE const _TyObject & operator [] ( Uint32 _idx ) const { 
+				return TFather::__Get( _idx ); }
 			
 			// Get the item count of the array list.
 			INLINE Uint32 Size() const { return TFather::__Size(); }
@@ -171,6 +184,102 @@ namespace Plib
 			// The only way is to start a two-layer-loop to release all object.
 			INLINE void Clear( ) { TFather::__Clear(); }
 		};
+		
+		// Reference Version of Order_
+		// The Array List is always used to be returned for multiple value.
+		template< typename _TyObject, typename _TyAlloc >
+		class Order : public Reference< Order_< _TyObject, _TyAlloc > >
+		{
+		public:
+			typedef Reference< Order_< _TyObject, _TyAlloc > >	TFather;
+			
+		protected:
+			// For Null Order
+			Order< _TyObject, _TyAlloc >( bool _beNull ) : TFather( false ) 
+			{ CONSTRUCTURE; }
+			
+		public:
+			// Default C'Str.
+			// Create an empty array list.
+			Order< _TyObject, _TyAlloc >( )
+				: TFather( true ) { CONSTRUCTURE; }
+			
+			// Copy C'str
+			Order< _TyObject, _TyAlloc >( 
+				const Order_< _TyObject, _TyAlloc > & rhs )
+				: TFather( true ) { 
+					CONSTRUCTURE; 
+					TFather::_Handle->_PHandle->SortInsert( rhs ); 
+				}
+			
+			// Default Copy
+			Order< _TyObject, _TyAlloc > ( const Order< _TyObject, _TyAlloc > & rhs )
+				: TFather( rhs ) { CONSTRUCTURE; }
+			// C'Str with array
+			template < typename _TyIterator >
+			Order< _TyObject, _TyAlloc >( 
+			 	_TyIterator _begin, _TyIterator _end )
+				: TFather( true ) { 
+					CONSTRUCTURE; 
+					TFather::_Handle->_PHandle->SortInsert( _begin, _end ); 
+				}
+			// D'str
+			virtual ~Order< _TyObject, _TyAlloc >( ) { DESTRUCTURE; }
+			
+			// Sort and insert the new object to the list.
+			INLINE void SortInsert( const _TyObject & _vobj ) { 
+				TFather::_Handle->_PHandle->SortInsert( _vobj ); }
+
+			INLINE void SortInsert( const Order< _TyObject, _TyAlloc > & _rOrder ) {
+				TFather::_Handle->_PHandle->SortInsert( *(_rOrder._Handle->_PHandle) );	}
+			
+			template< typename _TyIterator >
+			INLINE void SortInsert( _TyIterator _begin, _TyIterator _end ) {
+				TFather::_Handle->_PHandle->Append( _begin, _end ); }
+				
+			// Find if the object is in the list.
+			// This method is not very effective.
+			INLINE Uint32 Find( const _TyObject & _vobj ) {
+				return TFather::_Handle->_PHandle->Find( _vobj ); }
+				
+			// Remove specified item.
+			INLINE void Remove ( Uint32 _idx ) { 
+				TFather::_Handle->_PHandle->Remove( _idx ); }
+			
+			// A loop to remove _count elements start from _start.
+			INLINE void Remove ( Uint32 _start, Uint32 _count ) {
+				TFather::_Handle->_PHandle->Remove( _start, _count ); }
+			
+			// Non const version of operator [], return the copy object.
+			INLINE _TyObject operator [] ( Uint32 _idx ) {
+				return TFather::_Handle->_PHandle->operator [] ( _idx ); }
+			// Const version of operator [], get the specified item.
+			INLINE const _TyObject & operator [] ( Uint32 _idx ) const { 
+				return TFather::_Handle->_PHandle->operator []( _idx ); }
+						
+			// Get the item count of the array list.
+			INLINE Uint32 Size() const { 
+				return TFather::_Handle->_PHandle->Size(); }
+			
+			// Check if the array list is empty.
+			INLINE bool Empty( ) const { 
+				return TFather::_Handle->_PHandle->Empty(); }
+			
+			// Clear the storages' data.
+			// The only way is to start a two-layer-loop to release all object.
+			INLINE void Clear( ) { 
+				TFather::_Handle->_PHandle->Clear(); }
+			
+			const static Order< _TyObject, _TyAlloc > Null;
+			
+			static Order< _TyObject, _TyAlloc > CreateNullOrder( ){
+				return Order< _TyObject, _TyAlloc >( false );
+			}			
+		};
+		
+		template< typename _TyObject, typename _TyAlloc >
+			const Order< _TyObject, _TyAlloc > 
+				Order< _TyObject, _TyAlloc >::Null( false );
 	}
 }
 
